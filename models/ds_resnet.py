@@ -20,7 +20,7 @@ class BasicBlock(nn.Module):
         super(BasicBlock, self).__init__()
         self.conv1 = conv3x3(inplanes, planes, stride)
         self.bn1 = nn.BatchNorm2d(planes)
-        self.activ = nn.ReLU(inplace=True)
+        self.activ = nn.Threshold(-1.0, -1.0)
         self.conv2 = conv3x3(planes, planes)
         self.bn2 = nn.BatchNorm2d(planes)
         self.downsample = downsample
@@ -48,47 +48,6 @@ class BasicBlock(nn.Module):
 
         return out
 
-# class Bottleneck(nn.Module):
-#     expansion = 4
-
-#     def __init__(self, inplanes, planes, stride=1, downsample=None):
-#         super(Bottleneck, self).__init__()
-#         self.conv1 = nn.Conv2d(inplanes, planes, kernel_size=1, bias=False)
-#         self.bn1 = nn.BatchNorm2d(planes)
-#         self.conv2 = nn.Conv2d(planes, planes, kernel_size=3, stride=stride, padding=1, bias=False)
-#         self.bn2 = nn.BatchNorm2d(planes)
-#         self.conv3 = nn.Conv2d(planes, planes * self.expansion, kernel_size=1, bias=False)
-#         self.bn3 = nn.BatchNorm2d(planes * self.expansion)
-#         self.activ = nn.ReLU(inplace=True)
-#         self.downsample = downsample
-#         self.stride = stride
-
-#         self.conv1, self.bn1 = ModuleInjection.make_prunable(self.conv1, self.bn1)
-#         self.conv2, self.bn2 = ModuleInjection.make_prunable(self.conv2, self.bn2)
-#         self.conv3, self.bn3 = ModuleInjection.make_prunable(self.conv3, self.bn3)
-
-#     def forward(self, x):
-#         residual = x
-
-#         out = self.conv1(x)
-#         out = self.bn1(out)
-#         out = self.activ(out)
-
-#         out = self.conv2(out)
-#         out = self.bn2(out)
-#         out = self.activ(out)
-
-#         out = self.conv3(out)
-#         out = self.bn3(out)
-
-#         if self.downsample is not None:
-#             residual = self.downsample(x)
-
-#         out += residual
-#         out = self.activ(out)
-
-#         return out
-
 class ResNet(BaseModel):
     def __init__(self, block, layers, width=1, num_classes=1000, produce_vectors=False, init_weights=True, insize=32):
         super(ResNet, self).__init__()
@@ -105,8 +64,6 @@ class ResNet(BaseModel):
         self.bn1 = nn.BatchNorm2d(64)
         self.conv1, self.bn1 = ModuleInjection.make_prunable(self.conv1, self.bn1)
         self.prev_module[self.bn1]=None
-        # self.activ = nn.ReLU(inplace=True)
-        # self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
         self.layer1 = self._make_layer(block, 64 * width, layers[0])
         self.layer2 = self._make_layer(block, 128 * width, layers[1], stride=2)
         self.layer3 = self._make_layer(block, 256 * width, layers[2], stride=2)
@@ -165,9 +122,6 @@ class ResNet(BaseModel):
     def forward(self, x):
         x = self.conv1(x)
         x = self.bn1(x)
-        # x = self.activ(x)
-        # x = self.maxpool(x)
-
         x = self.layer1(x)
         x = self.layer2(x)
         x = self.layer3(x)
