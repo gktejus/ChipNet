@@ -71,6 +71,7 @@ def train(model, loss_fn, optimizer, scheduler=None):
         tk1.set_postfix(loss=running_loss/counter)
         optimizer.zero_grad()
         loss.backward()
+        torch.nn.utils.clip_grad_norm_(model.parameters(), 1)
         optimizer.step()
     return running_loss/counter
 

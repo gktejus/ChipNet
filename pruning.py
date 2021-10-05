@@ -102,6 +102,7 @@ def train(model, loss_fn, optimizer, epoch):
         loss.backward()
         running_loss+=loss.item()
         tk1.set_postfix(loss=running_loss/counter)
+        torch.nn.utils.clip_grad_norm_(model.parameters(), 1)
         optimizer.step()
         steepness=min(60,steepness+5./len(tk1))
     return running_loss/counter
